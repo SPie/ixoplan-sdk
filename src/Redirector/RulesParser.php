@@ -67,28 +67,57 @@ class RulesParser
 
     /**
      * @param array $nodeData
-     * @return RuleNode
+     * @return RuleNode|null
      */
     protected function buildNode($nodeData) {
 
         if ($nodeData['type'] === 'condition') {
-            $node = new RuleConditionNode();
-            $node->setMatching($nodeData['matching'] === RuleConditionNode::MATCHING_AND ? RuleConditionNode::MATCHING_AND : RuleConditionNode::MATCHING_OR);
-            $node->setConditions($this->buildConditions($nodeData['conditions']));
-            if (!empty($nodeData['then'])) {
-                $node->setThen($this->buildNode($nodeData['then']));
-            }
-            if (!empty($nodeData['else'])) {
-                $node->setElse($this->buildNode($nodeData['else']));
-            }
-            if (!empty($nodeData['next'])) {
-                $node->setNext($this->buildNode($nodeData['next']));
-            }
-        } else {
-            $node = $this->factory->createActionFromArray($nodeData);
-            if (!empty($nodeData['next'])) {
-                $node->setNext($this->buildNode($nodeData['next']));
-            }
+            return $this->buildConditionNode($nodeData);
+        }
+
+        return $this->buildActionNode($nodeData);
+    }
+
+    /**
+     * @param array $nodeData
+     * @return RuleConditionNode|null
+     */
+    private function buildConditionNode($nodeData)
+    {
+        $node = new RuleConditionNode();
+        $node->setMatching($nodeData['matching'] === RuleConditionNode::MATCHING_AND ? RuleConditionNode::MATCHING_AND : RuleConditionNode::MATCHING_OR);
+        $conditions = $this->buildConditions($nodeData['conditions']);
+        if (empty($conditions)) {
+            return null;
+        }
+
+        $node->setConditions($conditions);
+        if (!empty($nodeData['then'])) {
+            $node->setThen($this->buildNode($nodeData['then']));
+        }
+        if (!empty($nodeData['else'])) {
+            $node->setElse($this->buildNode($nodeData['else']));
+        }
+        if (!empty($nodeData['next'])) {
+            $node->setNext($this->buildNode($nodeData['next']));
+        }
+
+        return $node;
+    }
+
+    /**
+     * @param array $nodeData
+     * @return Action|null
+     */
+    private function buildActionNode($nodeData)
+    {
+        $node = $this->factory->createActionFromArray($nodeData);
+        if (empty($node)) {
+            return null;
+        }
+
+        if (!empty($nodeData['next'])) {
+            $node->setNext($this->buildNode($nodeData['next']));
         }
 
         return $node;
@@ -106,7 +135,9 @@ class RulesParser
         $ruleConditionNodes = [];
         foreach ($conditionsData as $conditionData) {
             $ruleConditionNode = $this->factory->createConditionFromArray($conditionData);
-            $ruleConditionNodes[] = $ruleConditionNode;
+            if (!\is_null($ruleConditionNode)) {
+                $ruleConditionNodes[] = $ruleConditionNode;
+            }
         }
 
         return $ruleConditionNodes;

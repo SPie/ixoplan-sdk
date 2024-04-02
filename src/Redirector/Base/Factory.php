@@ -6,23 +6,19 @@ use Ixolit\Dislo\Exceptions\RedirectorException;
 use Ixolit\Dislo\Redirector\Rules\Actions\Action;
 use Ixolit\Dislo\Redirector\Rules\Conditions\Condition;
 
-/**
- * Class Factory
- * @package Ixolit\Dislo\Redirector\Base
- */
 class Factory
 {
-
     /**
      * @param array $actionData
-     * @return Action
+     * @return Action|null
      * @throws RedirectorException
      */
-    public function createActionFromArray($actionData) {
+    public function createActionFromArray($actionData)
+    {
         $className = "Ixolit\\Dislo\\Redirector\\Rules\\Actions\\".$actionData['type'];
 
         if (!class_exists($className)) {
-            throw new RedirectorException(__METHOD__.': Class '.$className.' does not exist.');
+            return null;
         }
 
         /**
@@ -43,14 +39,15 @@ class Factory
 
     /**
      * @param $conditionData
-     * @return Condition
+     * @return Condition|null
      * @throws RedirectorException
      */
-    public function createConditionFromArray($conditionData) {
+    public function createConditionFromArray($conditionData)
+    {
         $className = "Ixolit\\Dislo\\Redirector\\Rules\\Conditions\\".$conditionData['type'];
 
         if (!class_exists($className)) {
-            throw new RedirectorException('Class '.$className.' does not exist.');
+            return null;
         }
 
         /**
@@ -65,7 +62,6 @@ class Factory
         $condition->setParameters($conditionData['data'] ?: []);
 
         return $condition;
-
     }
 
 }

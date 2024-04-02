@@ -8,14 +8,10 @@ use Ixolit\Dislo\Redirector\Rules\Rule;
 use Ixolit\Dislo\Redirector\Rules\RuleConditionNode;
 use Ixolit\Dislo\Redirector\RulesParser;
 
-/**
- * Class RulesParserTest
- * @package Ixolit\Dislo\Redirector
- */
 class RulesParserTest extends \PHPUnit_Framework_TestCase
 {
-
-    public function testEmptyRulesArrayJson() {
+    public function testEmptyRulesArrayJson()
+    {
 
         $jsonExample =
             '{
@@ -29,8 +25,8 @@ class RulesParserTest extends \PHPUnit_Framework_TestCase
 
     }
 
-    public function testEmptyRulesJson() {
-
+    public function testEmptyRulesJson()
+    {
         $jsonExample =
             '{
                 "redirectorRules": [
@@ -56,8 +52,8 @@ class RulesParserTest extends \PHPUnit_Framework_TestCase
 
     }
 
-    public function testRulesJson1() {
-
+    public function testRulesJson1()
+    {
         $jsonExample =
             '{
                 "redirectorRules": [
@@ -118,8 +114,8 @@ class RulesParserTest extends \PHPUnit_Framework_TestCase
 
     }
 
-    public function testRulesJson2() {
-
+    public function testRulesJson2()
+    {
         $jsonExample =
             '{
                 "redirectorRules": [
@@ -237,8 +233,8 @@ class RulesParserTest extends \PHPUnit_Framework_TestCase
     }
 
 
-    public function testRulesJson3() {
-
+    public function testRulesJson3()
+    {
         $jsonExample =
             '{
                 "redirectorRules": [
@@ -371,8 +367,8 @@ class RulesParserTest extends \PHPUnit_Framework_TestCase
 
     }
 
-    public function testRulesJson4() {
-
+    public function testRulesJson4()
+    {
         $jsonExample =
             '{
                 "redirectorRules": [
@@ -421,4 +417,105 @@ class RulesParserTest extends \PHPUnit_Framework_TestCase
 
     }
 
+    public function testRulesJsonWithNonExistingCondition()
+    {
+        $jsonExample =
+            '{
+                "redirectorRules": [
+                    {
+                        "name": "Rule1",
+                        "ruleNodes": {
+                            "type": "condition",
+                            "next": {
+                                "type": "SetCookie",
+                                "data": {
+                                    "cookieName": "cookieName",
+                                    "cookieValue": "cookieValue",
+                                    "maxAge": "2700",
+                                    "Path": "\/",
+                                    "httpOnly": "true",
+                                    "requireSSL": "true"
+                                }
+                            },
+                            "matching": "AND",
+                            "conditions": [
+                                {
+                                    "type": "DoesNotExist",
+                                    "data": {}
+                                }
+                            ],
+                            "then": {
+                                "type": "RedirectToUrl",
+                                "data": {
+                                    "url": "http:\/\/url-example.com",
+                                    "statusCode": 302
+                                }
+                            },
+                            "else": {
+                                "type": "NoRedirection"
+                            }
+                        }
+                    }
+                ]
+            }';
+
+        $rulesParser = new RulesParser();
+
+        $rules = $rulesParser->buildRulesFromJson($jsonExample);
+
+        $this->assertNull($rules[0]->getRootRuleNode());
+    }
+
+    public function testRulesWithNonExistingAction()
+    {
+        $jsonExample =
+            '{
+                "redirectorRules": [
+                    {
+                        "name": "Rule1",
+                        "ruleNodes": {
+                            "type": "condition",
+                            "next": {
+                                "type": "NonExistingAction",
+                                "data": {}
+                            },
+                            "matching": "AND",
+                            "conditions": [
+                                {
+                                    "type": "UrlCheck",
+                                    "data": {
+                                        "comparator": "regex",
+                                        "value": "#test#i"
+                                    }
+                                }
+                            ],
+                            "then": {
+                                "type": "NonExistingAction",
+                                "data": {}
+                            },
+                            "else": {
+                                "type": "NonExistingAction",
+                                "data": {}
+                            }
+                        }
+                    }
+                ]
+            }';
+
+        $rulesParser = new RulesParser();
+        $rules = $rulesParser->buildRulesFromJson($jsonExample);
+
+        $this->assertCount(1, $rules);
+        $rule = $rules[0];
+
+        $this->assertInstanceOf(RuleConditionNode::class, $rule->getRootRuleNode());
+
+        /** @var RuleConditionNode $ruleConditionNode */
+        $ruleConditionNode = $rule->getRootRuleNode();
+        $this->assertInstanceOf(UrlCheck::class, $ruleConditionNode->getConditions()[0]);
+        $this->assertNull($ruleConditionNode->getThen());
+        $this->assertNull($ruleConditionNode->getElse());
+        $this->assertNull($ruleConditionNode->getNext());
+
+    }
 }
