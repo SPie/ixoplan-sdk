@@ -2,6 +2,7 @@
 
 namespace Ixolit\Dislo\Redirector;
 
+use Ixolit\Dislo\Exceptions\RedirectorException;
 use Ixolit\Dislo\Redirector\Base\Factory;
 use Ixolit\Dislo\Redirector\Rules\Conditions\Condition;
 use Ixolit\Dislo\Redirector\Rules\Rule;
@@ -54,12 +55,17 @@ class RulesParser
 
         $rulesResult = [];
         foreach ($data['redirectorRules'] as $ruleData) {
-            $rule = new Rule();
-            $rule->setName($ruleData['name']);
-            if ($ruleData['ruleNodes']) {
-                $rule->setRootRuleNode($this->buildNode($ruleData['ruleNodes']));
+            try {
+                $rule = new Rule();
+                $rule->setName($ruleData['name']);
+                if ($ruleData['ruleNodes']) {
+                    $rule->setRootRuleNode($this->buildNode($ruleData['ruleNodes']));
+                }
+
+                $rulesResult[] = $rule;
+            } catch (RedirectorException $e) {
+                // ignore this rule
             }
-            $rulesResult[] = $rule;
         }
 
         return $rulesResult;
@@ -87,9 +93,6 @@ class RulesParser
         $node = new RuleConditionNode();
         $node->setMatching($nodeData['matching'] === RuleConditionNode::MATCHING_AND ? RuleConditionNode::MATCHING_AND : RuleConditionNode::MATCHING_OR);
         $conditions = $this->buildConditions($nodeData['conditions']);
-        if (empty($conditions)) {
-            return null;
-        }
 
         $node->setConditions($conditions);
         if (!empty($nodeData['then'])) {
@@ -112,9 +115,6 @@ class RulesParser
     private function buildActionNode($nodeData)
     {
         $node = $this->factory->createActionFromArray($nodeData);
-        if (empty($node)) {
-            return null;
-        }
 
         if (!empty($nodeData['next'])) {
             $node->setNext($this->buildNode($nodeData['next']));
@@ -135,9 +135,7 @@ class RulesParser
         $ruleConditionNodes = [];
         foreach ($conditionsData as $conditionData) {
             $ruleConditionNode = $this->factory->createConditionFromArray($conditionData);
-            if (!\is_null($ruleConditionNode)) {
-                $ruleConditionNodes[] = $ruleConditionNode;
-            }
+            $ruleConditionNodes[] = $ruleConditionNode;
         }
 
         return $ruleConditionNodes;

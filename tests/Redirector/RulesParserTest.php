@@ -463,7 +463,7 @@ class RulesParserTest extends \PHPUnit_Framework_TestCase
 
         $rules = $rulesParser->buildRulesFromJson($jsonExample);
 
-        $this->assertNull($rules[0]->getRootRuleNode());
+        $this->assertCount(0, $rules);
     }
 
     public function testRulesWithNonExistingAction()
@@ -505,17 +505,6 @@ class RulesParserTest extends \PHPUnit_Framework_TestCase
         $rulesParser = new RulesParser();
         $rules = $rulesParser->buildRulesFromJson($jsonExample);
 
-        $this->assertCount(1, $rules);
-        $rule = $rules[0];
-
-        $this->assertInstanceOf(RuleConditionNode::class, $rule->getRootRuleNode());
-
-        /** @var RuleConditionNode $ruleConditionNode */
-        $ruleConditionNode = $rule->getRootRuleNode();
-        $this->assertInstanceOf(UrlCheck::class, $ruleConditionNode->getConditions()[0]);
-        $this->assertNull($ruleConditionNode->getThen());
-        $this->assertNull($ruleConditionNode->getElse());
-        $this->assertNull($ruleConditionNode->getNext());
-
+        $this->assertCount(0, $rules);
     }
 }

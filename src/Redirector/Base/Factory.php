@@ -10,7 +10,7 @@ class Factory
 {
     /**
      * @param array $actionData
-     * @return Action|null
+     * @return Action
      * @throws RedirectorException
      */
     public function createActionFromArray($actionData)
@@ -18,7 +18,7 @@ class Factory
         $className = "Ixolit\\Dislo\\Redirector\\Rules\\Actions\\".$actionData['type'];
 
         if (!class_exists($className)) {
-            return null;
+            throw new RedirectorException(__METHOD__.': Class '.$className.' does not exist.');
         }
 
         /**
@@ -39,7 +39,7 @@ class Factory
 
     /**
      * @param $conditionData
-     * @return Condition|null
+     * @return Condition
      * @throws RedirectorException
      */
     public function createConditionFromArray($conditionData)
@@ -47,7 +47,7 @@ class Factory
         $className = "Ixolit\\Dislo\\Redirector\\Rules\\Conditions\\".$conditionData['type'];
 
         if (!class_exists($className)) {
-            return null;
+            throw new RedirectorException('Class '.$className.' does not exist.');
         }
 
         /**
