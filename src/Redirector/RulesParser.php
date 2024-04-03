@@ -2,6 +2,7 @@
 
 namespace Ixolit\Dislo\Redirector;
 
+use Ixolit\Dislo\Exceptions\RedirectorException;
 use Ixolit\Dislo\Redirector\Base\Factory;
 use Ixolit\Dislo\Redirector\Rules\Conditions\Condition;
 use Ixolit\Dislo\Redirector\Rules\Rule;
@@ -54,12 +55,17 @@ class RulesParser
 
         $rulesResult = [];
         foreach ($data['redirectorRules'] as $ruleData) {
-            $rule = new Rule();
-            $rule->setName($ruleData['name']);
-            if ($ruleData['ruleNodes']) {
-                $rule->setRootRuleNode($this->buildNode($ruleData['ruleNodes']));
+            try {
+                $rule = new Rule();
+                $rule->setName($ruleData['name']);
+                if ($ruleData['ruleNodes']) {
+                    $rule->setRootRuleNode($this->buildNode($ruleData['ruleNodes']));
+                }
+
+                $rulesResult[] = $rule;
+            } catch (RedirectorException $e) {
+                // ignore this rule
             }
-            $rulesResult[] = $rule;
         }
 
         return $rulesResult;
@@ -67,28 +73,51 @@ class RulesParser
 
     /**
      * @param array $nodeData
-     * @return RuleNode
+     * @return RuleNode|null
      */
     protected function buildNode($nodeData) {
 
         if ($nodeData['type'] === 'condition') {
-            $node = new RuleConditionNode();
-            $node->setMatching($nodeData['matching'] === RuleConditionNode::MATCHING_AND ? RuleConditionNode::MATCHING_AND : RuleConditionNode::MATCHING_OR);
-            $node->setConditions($this->buildConditions($nodeData['conditions']));
-            if (!empty($nodeData['then'])) {
-                $node->setThen($this->buildNode($nodeData['then']));
-            }
-            if (!empty($nodeData['else'])) {
-                $node->setElse($this->buildNode($nodeData['else']));
-            }
-            if (!empty($nodeData['next'])) {
-                $node->setNext($this->buildNode($nodeData['next']));
-            }
-        } else {
-            $node = $this->factory->createActionFromArray($nodeData);
-            if (!empty($nodeData['next'])) {
-                $node->setNext($this->buildNode($nodeData['next']));
-            }
+            return $this->buildConditionNode($nodeData);
+        }
+
+        return $this->buildActionNode($nodeData);
+    }
+
+    /**
+     * @param array $nodeData
+     * @return RuleConditionNode|null
+     */
+    private function buildConditionNode($nodeData)
+    {
+        $node = new RuleConditionNode();
+        $node->setMatching($nodeData['matching'] === RuleConditionNode::MATCHING_AND ? RuleConditionNode::MATCHING_AND : RuleConditionNode::MATCHING_OR);
+        $conditions = $this->buildConditions($nodeData['conditions']);
+
+        $node->setConditions($conditions);
+        if (!empty($nodeData['then'])) {
+            $node->setThen($this->buildNode($nodeData['then']));
+        }
+        if (!empty($nodeData['else'])) {
+            $node->setElse($this->buildNode($nodeData['else']));
+        }
+        if (!empty($nodeData['next'])) {
+            $node->setNext($this->buildNode($nodeData['next']));
+        }
+
+        return $node;
+    }
+
+    /**
+     * @param array $nodeData
+     * @return Action|null
+     */
+    private function buildActionNode($nodeData)
+    {
+        $node = $this->factory->createActionFromArray($nodeData);
+
+        if (!empty($nodeData['next'])) {
+            $node->setNext($this->buildNode($nodeData['next']));
         }
 
         return $node;
