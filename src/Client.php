@@ -2388,8 +2388,9 @@ class Client extends AbstractClient {
 	 *
 	 * @return MiscGetRedirectorConfigurationResponse
 	 */
-	public function miscGetRedirectorConfiguration() {
-		$data = [];
+	public function miscGetRedirectorConfiguration()
+	{
+		$data = ['use-new' => true];
 		$response = $this->request(self::API_URI_REDIRECTOR_GET_CONFIGURATION, $data);
 		return MiscGetRedirectorConfigurationResponse::fromResponse($response);
 	}
