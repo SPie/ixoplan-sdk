@@ -2324,8 +2324,9 @@ class Client extends AbstractClient {
 	 *
 	 * @return MiscGetRedirectorConfigurationResponse
 	 */
-	public function miscGetRedirectorConfiguration() {
-		$data = [];
+	public function miscGetRedirectorConfiguration()
+	{
+		$data = ['use-new' => true];
 		$response = $this->request('/frontend/misc/getRedirectorConfiguration', $data);
 		return MiscGetRedirectorConfigurationResponse::fromResponse($response);
 	}
