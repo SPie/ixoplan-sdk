@@ -24,7 +24,7 @@ final class DateCheck extends Condition
         RedirectorRequestInterface $request,
         RedirectorResultInterface $result
     ) {
-        $date = new \DateTime($request->getHeaders()['date'] ?: null);
+        $date = new \DateTime(!empty($request->getHeaders()['date']) ? $request->getHeaders()['date'] : null);
         $value = new \DateTime($this->parameters['value']);
 
         switch ($this->parameters['comparator']) {
