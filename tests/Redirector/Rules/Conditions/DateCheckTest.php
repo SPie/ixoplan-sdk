@@ -235,9 +235,13 @@ final class DateCheckTest extends TestCase
     public function testEvaluateFromRequest($dateHeader, $value, $comparator, $result)
     {
         $request = Mockery::spy(RedirectorRequestInterface::class);
+        $headers = [];
+        if (!\is_null($dateHeader)) {
+            $headers['date'] = $dateHeader;
+        }
         $request
             ->shouldReceive('getHeaders')
-            ->andReturn(['date' => $dateHeader]);
+            ->andReturn($headers);
         $dateCheck = $this->getDateCheck(['comparator' => $comparator, 'value' => $value]);
 
         $this->assertEquals(
