@@ -28,6 +28,10 @@ abstract class Condition {
     const COMPARATOR_NOT_REGEX = 'not_regex';
     const COMPARATOR_EXISTS = 'exists';
     const COMPARATOR_NOT_EXISTS = 'not_exists';
+    const COMPARATOR_GREATER_THAN = 'gt';
+    const COMPARATOR_LOWER_THAN = 'lt';
+    const COMPARATOR_GREATER_THAN_EQUALS = 'gte';
+    const COMPARATOR_LOWER_THAN_EQUALS = 'lte';
 
     /**
      * @var array
